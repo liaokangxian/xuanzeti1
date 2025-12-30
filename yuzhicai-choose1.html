@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>预制菜问答 - iframe适配版</title>
+    <style>
+        /* iframe核心适配：移除默认边距、禁止滚动、透明背景 */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: transparent; /* iframe背景透明 */
+            font-family: 'Microsoft Yahei', sans-serif;
+        }
+        * {
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <!-- 问答容器：适配iframe尺寸，强制显示 -->
+    <div id="quiz-container" style="width: 100%; max-width: 600px; padding: 15px; display: block !important; visibility: visible !important; margin: 0 auto;">
+        <!-- 题目 -->
+        <div id="quiz-title" style="font-size: 16px; font-weight: 600; margin-bottom: 15px; color: #333;">
+            1、以下哪种食物，属于预制菜的范畴？
+        </div>
+
+        <!-- 选项容器 -->
+        <div id="options-wrap" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; align-items: flex-start;">
+            <!-- 选项A -->
+            <div id="optionA" style="
+                padding: 12px 16px;
+                background: #FFE680;
+                border-radius: 6px;
+                font-size: 14px;
+                color: #333;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                width: fit-content;
+                min-width: 280px;
+                box-sizing: border-box;
+            ">
+                A. 超市冷冻柜里的速冻水饺
+            </div>
+            <!-- 选项B -->
+            <div id="optionB" style="
+                padding: 12px 16px;
+                background: #FFE680;
+                border-radius: 6px;
+                font-size: 14px;
+                color: #333;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                width: fit-content;
+                min-width: 280px;
+                box-sizing: border-box;
+            ">
+                B. 菜市场现切现卖的新鲜排骨
+            </div>
+            <!-- 选项C -->
+            <div id="optionC" style="
+                padding: 12px 16px;
+                background: #FFE680;
+                border-radius: 6px;
+                font-size: 14px;
+                color: #333;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                width: fit-content;
+                min-width: 280px;
+                box-sizing: border-box;
+            ">
+                C. 家里刚炒好的番茄炒蛋
+            </div>
+        </div>
+
+        <!-- 解析 -->
+        <div id="analysis" style="
+            display: none;
+            padding: 12px 16px;
+            background: #F5F5F5;
+            border-radius: 6px;
+            font-size: 12px; /* 调整解析字号，原9px过小 */
+            color: #555;
+            width: 100%; /* 适配iframe宽度，替换fit-content */
+            min-width: 280px;
+            box-sizing: border-box;
+            line-height: 1.5;
+        ">
+            正确答案：A  解析：预制菜是经预加工（清洗、切配、烹饪/半烹饪）后包装保存的食品，速冻水饺经过和面、调馅、包制、速冻等完整预加工流程，属于典型预制菜；新鲜排骨仅为未经处理的原料，现炒番茄炒蛋是即时制作的菜品，均不属于预制菜范畴。
+        </div>
+    </div>
+
+    <!-- iframe适配脚本：保留原有逻辑 + 高度自适应 -->
+    <script>
+        // 发送iframe高度到父窗口（适配iframe自适应）
+        function sendIframeHeight() {
+            const container = document.getElementById('quiz-container');
+            const height = container.offsetHeight + 20; // 预留少量边距
+            if (window.parent !== window) {
+                window.parent.postMessage({
+                    type: 'quizIframeHeight',
+                    height: height
+                }, '*'); // 生产环境替换为具体域名
+            }
+        }
+
+        // 问答核心逻辑
+        window.quizInit = function() {
+            // 多次获取元素（兜底DOM渲染延迟）
+            const optionA = document.getElementById('optionA') || document.querySelector('#optionA');
+            const optionB = document.getElementById('optionB') || document.querySelector('#optionB');
+            const optionC = document.getElementById('optionC') || document.querySelector('#optionC');
+            const analysis = document.getElementById('analysis') || document.querySelector('#analysis');
+            const container = document.getElementById('quiz-container');
+            let isAnswered = false;
+
+            // 先强制显示容器（防止iframe隐藏）
+            if (container) {
+                container.style.display = 'block';
+                container.style.visibility = 'visible';
+            }
+
+            // 悬停效果
+            if (optionA) {
+                optionA.onmouseenter = function() { if (!isAnswered) this.style.background = '#FFD640'; };
+                optionA.onmouseleave = function() { if (!isAnswered) this.style.background = '#FFE680'; };
+            }
+            if (optionB) {
+                optionB.onmouseenter = function() { if (!isAnswered) this.style.background = '#FFD640'; };
+                optionB.onmouseleave = function() { if (!isAnswered) this.style.background = '#FFE680'; };
+            }
+            if (optionC) {
+                optionC.onmouseenter = function() { if (!isAnswered) this.style.background = '#FFD640'; };
+                optionC.onmouseleave = function() { if (!isAnswered) this.style.background = '#FFE680'; };
+            }
+
+            // 点击逻辑
+            const handleClick = (el, isCorrect) => {
+                if (isAnswered) return;
+                isAnswered = true;
+                el.style.background = isCorrect ? '#80E680' : '#FF8080';
+                el.style.color = '#FFF';
+                if (analysis) {
+                    analysis.style.display = 'block';
+                    sendIframeHeight(); // 点击后重新计算高度
+                }
+            };
+
+            if (optionA) optionA.onclick = () => handleClick(optionA, true);
+            if (optionB) optionB.onclick = () => handleClick(optionB, false);
+            if (optionC) optionC.onclick = () => handleClick(optionC, false);
+
+            // 初始发送高度
+            sendIframeHeight();
+        };
+
+        // 多重触发，确保脚本执行
+        document.addEventListener('DOMContentLoaded', window.quizInit);
+        window.onload = window.quizInit;
+        setTimeout(window.quizInit, 500);
+        window.quizInit();
+
+        // 窗口大小变化时重新计算高度
+        window.addEventListener('resize', sendIframeHeight);
+    </script>
+</body>
+</html>
